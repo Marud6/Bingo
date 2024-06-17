@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>BINGO</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="script.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>
+        Proste bingo<br />
+        <span>B</span>
+        <span>I</span>
+        <span>N</span>
+        <span>G</span>
+        <span>O</span>
+      </h1>
+      <div class="grid">
+        <label>
+          <input type="checkbox" />
+          <div onclick="bum(this.dataset.value)" data-value="1" class="mark">
+            <span>1</span>
+          </div>
+        </label>
+        <label>
+          <input type="checkbox" />
+          <div onclick="bum(this.dataset.value)" data-value="2" class="mark">
+            <span>2</span>
+          </div>
+        </label>
+        <label>
+          <input type="checkbox" />
+          <div onclick="bum(this.dataset.value)" data-value="3" class="mark">
+            <span>3</span>
+          </div>
+        </label>
+        <label>
+          <input type="checkbox" />
+          <div onclick="bum(this.dataset.value)" data-value="4" class="mark">
+            <span>4</span>
+          </div>
+        </label>
+        <label>
+          <input type="checkbox" />
+          <div onclick="bum(this.dataset.value)" data-value="5" class="mark">
+            <span>5</span>
+          </div>
+        </label>
+        <label>
+          <input type="checkbox" />
+          <div onclick="bum(this.dataset.value)" data-value="6" class="mark">
+            <span>6</span>
+          </div>
+        </label>
+        <label>
+          <input type="checkbox" />
+          <div onclick="bum(this.dataset.value)" data-value="7" class="mark">
+            <span>7</span>
+          </div>
+        </label>
+        <label>
+          <input type="checkbox" />
+          <div onclick="bum(this.dataset.value)" data-value="8" class="mark">
+            <span>8</span>
+          </div>
+        </label>
+        <label>
+          <input type="checkbox" />
+          <div onclick="bum(this.dataset.value)" data-value="9" class="mark">
+            <span>9</span>
+          </div>
+        </label>
+      </div>
+    </main>
+  </body>
+
+  <script>
+    document
+      .getElementById("upload-form")
+      .addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const fileInputSingle = document.getElementById("file-upload");
+        const fileInputMultiple = document.getElementById("filess");
+        const filesSingle = fileInputSingle.files;
+        const filesMultiple = fileInputMultiple.files;
+
+        const compressedFiles = [];
+
+        if (filesSingle.length > 0) {
+          const singleFile = filesSingle[0];
+          const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1024,
+            useWebWorker: true,
+          };
+          try {
+            const compressedFile = await imageCompression(singleFile, options);
+            compressedFiles.push({ file: compressedFile, name: "img" });
+          } catch (error) {
+            console.error(error);
+          }
+        }
+
+        for (let i = 0; i < filesMultiple.length; i++) {
+          const file = filesMultiple[i];
+          const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1024,
+            useWebWorker: true,
+          };
+          try {
+            const compressedFile = await imageCompression(file, options);
+            compressedFiles.push({ file: compressedFile, name: "filess[]" });
+          } catch (error) {
+            console.error(error);
+          }
+        }
+
+        const formData = new FormData();
+        formData.append(
+          "_token",
+          document.querySelector('input[name="_token"]').value
+        );
+        formData.append(
+          "name",
+          document.querySelector('input[name="name"]').value
+        );
+        formData.append(
+          "desc",
+          document.querySelector('input[name="desc"]').value
+        );
+
+        compressedFiles.forEach((compressed) => {
+          formData.append(
+            compressed.name,
+            compressed.file,
+            compressed.file.name
+          );
+        });
+
+        fetch("/cralbum", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.text())
+          .then((data) => {
+            console.log(data);
+            alert("Upload successful!");
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("Upload failed!");
+          });
+      });
+  </script>
+</html>
